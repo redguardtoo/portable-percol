@@ -1,0 +1,6 @@
+* portable-percol
+Portable [[https://github.com/mooz/percol][percol]] which "adds flavor of interactive filtering to the traditional pipe concept of UNIX shell".
+* Installation
+Place file "percol.py" and folder "percol" at =~/bin/=
+* Usage
+Try =ls -1 | ~/bin/percol.py= 
