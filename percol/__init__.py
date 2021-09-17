@@ -55,6 +55,8 @@ class Percol(object):
         # wraps candidates (iterator)
         from percol.lazyarray import LazyArray
         self.candidates = LazyArray(candidates or [])
+        self.has_no_candidate = self.candidates.has_nth_value(0)
+        self.has_only_one_candidate = self.candidates.has_nth_value(0) and not self.candidates.has_nth_value(1)
 
         # create model
         self.model_candidate = SelectorModel(percol = self,
@@ -65,12 +67,6 @@ class Percol(object):
                                           collection = [action.desc for action in actions],
                                           finder = action_finder)
         self.model = self.model_candidate
-
-    def has_no_candidate(self):
-        return not self.candidates.has_nth_value(0)
-
-    def has_only_one_candidate(self):
-        return self.candidates.has_nth_value(0) and not self.candidates.has_nth_value(1)
 
     def __enter__(self):
         # init curses and it's wrapper
@@ -258,16 +254,16 @@ class Percol(object):
     # Finish / Cancel
     # ------------------------------------------------------------ #
 
-    def finish(self):
+    def finish(self, value=0):
         # save selected candidates and use them later (in execute_action)
-        raise TerminateLoop(self.finish_with_exit_code())          # success
+        raise TerminateLoop(self.finish_with_exit_code(value))     # success
 
     def cancel(self):
         raise TerminateLoop(self.cancel_with_exit_code())          # failure
 
-    def finish_with_exit_code(self):
+    def finish_with_exit_code(self, value):
         self.args_for_action = self.model_candidate.get_selected_results_with_index()
-        return 0
+        return value
 
     def cancel_with_exit_code(self):
         return 1

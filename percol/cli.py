@@ -117,9 +117,14 @@ def setup_options(parser):
                       help = "whether quote the output line")
     parser.add_option("--peep", action = "store_true", dest = "peep", default = False,
                       help = "exit immediately with doing nothing to cache module files and speed up start-up time")
+    parser.add_option("--select-ignore", dest="select_ignore",
+                      help="lines that match regex cannot be selected")
 
 def set_proper_locale(options):
-    locale.setlocale(locale.LC_ALL, '')
+    try:
+        locale.setlocale(locale.LC_ALL, '')
+    except Exception as e:
+        debug.log("Exception in setlocale", e)
     output_encoding = locale.getpreferredencoding()
     if options.output_encoding:
         output_encoding = options.output_encoding
@@ -167,20 +172,20 @@ def main():
     options, args = parser.parse_args()
 
     if options.peep:
-        exit(1)
+        sys.exit(1)
 
     def exit_program(msg = None, show_help = True):
         if not msg is None:
             print(msg)
         if show_help:
             parser.print_help()
-        exit(1)
+        sys.exit(1)
 
     # get ttyname
     ttyname = options.tty or tty.get_ttyname()
     if not ttyname:
         exit_program(error_message("""No tty name is given and failed to guess it from descriptors.
-Maybe all descriptors are redirecred."""))
+Maybe all descriptors are redirected."""))
 
     # decide which encoding to use
     output_encoding = set_proper_locale(options)
@@ -258,12 +263,15 @@ Maybe all descriptors are redirecred."""))
             # view settings from option values
             set_if_not_none(options, percol.view, 'prompt_on_top')
             set_if_not_none(options, percol.view, 'results_top_down')
+            # command settings from options
+            set_if_not_none(options, percol.command_candidate, 'select_ignore')
+            
             # enter main loop
-            if options.auto_fail and percol.has_no_candidate():
+            if options.auto_fail and percol.has_no_candidate:
                 exit_code = percol.cancel_with_exit_code()
-            elif options.auto_match and percol.has_only_one_candidate():
+            elif options.auto_match and percol.has_only_one_candidate:
                 exit_code = percol.finish_with_exit_code()
             else:
                 exit_code = percol.loop()
 
-        exit(exit_code)
+        sys.exit(exit_code)
